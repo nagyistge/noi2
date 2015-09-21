@@ -64,6 +64,27 @@ class UserDbTests(DbTestCase):
         db.session.commit()
         eq_(u.deployment, '_default')
 
+class SharedMessageDbTests(DbTestCase):
+    def test_only_messages_in_search_deployments_are_seen(self):
+        other = models.User(email=u'b@example.org', password='a', active=True,
+                        deployment='other')
+        a = models.User(email=u'a@example.org', password='a', active=True,
+                        deployment='_default')
+        db.session.add(other)
+        db.session.add(a)
+        db.session.commit()
+        message1 = models.SharedMessage(user_id=a.id, message="hi")
+        message2 = models.SharedMessage(user_id=other.id, message="other")
+        db.session.add(message1)
+        db.session.add(message2)
+        db.session.commit()
+        messages = db.session.query(models.SharedMessage)\
+          .join(models.User)\
+          .filter(models.User.deployment == '_default')
+        eq_(messages.count(), 1)
+        eq_(messages[0].message, 'hi')
+        eq_(messages[0].user.email, 'a@example.org')
+
 def test_users_only_display_in_search_if_they_have_first_and_last_name():
     user = models.User()
     eq_(user.display_in_search, False)

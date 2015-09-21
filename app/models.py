@@ -340,3 +340,22 @@ class UserSkill(db.Model): #pylint: disable=no-init,too-few-public-methods
     user_id = Column(types.Integer, ForeignKey('users.id'), nullable=False)
 
     constraint = UniqueConstraint('user_id', 'name')
+
+class SharedMessage(db.Model): #pylint: disable=no-init,too-few-public-methods
+    '''
+    "Share with the network" message.
+    '''
+
+    __tablename__ = 'shared_messages'
+
+    id = Column(types.Integer, autoincrement=True, primary_key=True)  #pylint: disable=invalid-name
+    created_at = Column(types.DateTime(), default=datetime.datetime.now)
+    updated_at = Column(types.DateTime(), default=datetime.datetime.now,
+                        onupdate=datetime.datetime.now)
+
+    user_id = Column(types.Integer, ForeignKey('users.id'), nullable=False)
+    user = orm.relationship('User', backref='messages')
+
+    message = Column(types.Text, info={
+        'label': lazy_gettext('Message'),
+    })
