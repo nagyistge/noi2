@@ -6,12 +6,25 @@
     <ul class="e-menu-items" role="tablist">
         <li role="presentation" class="e-item active"><a href="#activity" aria-controls="activity" role="tab" data-toggle="tab">{{ gettext('Activity') }}</a></li>
         <li role="presentation" class="e-item"><a href="#connected" aria-controls="connected" role="tab" data-toggle="tab">{{ gettext('Most Connected') }}</a></li>
+        <li role="presentation" class="e-item"><a href="#complete" aria-controls="complete" role="tab" data-toggle="tab">{{ gettext('Most Complete Profiles') }}</a></li>
+        <li role="presentation" class="e-item"><a href="#progress" aria-controls="progress" role="tab" data-toggle="tab">{{ gettext('My Profile Progress') }}</a></li>
     </ul>
 </nav>
 
-<div>
+<div> <!-- Start of tab panel container -->
 
 <section role="tabpanel" id="activity" class="b-activity-feed active">
+
+<!-- TODO: This form needs to be moved to a modal. -->
+<form method="post">
+{{ shared_message_form.csrf_token }}
+
+{{ shared_message_form.message.label() }}
+{{ shared_message_form.message(placeholder=gettext("Share with the network")) }}
+
+<button type="submit">{{ gettext('Post') }}</button>
+</form>
+
   <ul class="e-activity-feed-container">
 {% macro user_link(user) -%}
 <strong><a href="{{ url_for('views.get_user', userid=user.id) }}">{{ user.full_name }}</a></strong>
@@ -63,18 +76,21 @@
 </ol>
 </div>
 
-<div role="tabpanel">
-<form method="post">
-{{ shared_message_form.csrf_token }}
+<div role="tabpanel" id="complete">
+<ol>
+  {% for user, score in most_complete_profiles %}
+    <li>
+      <p>{{ user_link(user) }}</p>
+      <small>
+        {{ score }} /
+        {{ gettext('%(skill)s Skills', skill=QUESTIONS_BY_ID.keys()|length) }}
+      </small>
+    </li>
+  {% endfor %}
+</ol>
+</div>
 
-{{ shared_message_form.message.label() }}
-{{ shared_message_form.message(placeholder=gettext("Share with the network")) }}
-
-<button type="submit">{{ gettext('Post') }}</button>
-</form>
-
-<h3>{{ gettext('My Profile Progress') }}</h3>
-
+<div role="tabpanel" id="progress">
 <ul>
   {% set q_progress = user.questionnaire_progress %}
   {% for questionnaire in QUESTIONNAIRES %}
@@ -95,24 +111,8 @@
 <a href="{{ url_for('views.my_profile') }}">
   {{ gettext('View / Edit My Profile') }}
 </a>
-
-<h2>{{ gettext('Activity') }}</h2>
-
-<h3>{{ gettext('Most Complete Profiles') }}</h3>
-
-<ol>
-  {% for user, score in most_complete_profiles %}
-    <li>
-      <p>{{ user_link(user) }}</p>
-      <small>
-        {{ score }} /
-        {{ gettext('%(skill)s Skills', skill=QUESTIONS_BY_ID.keys()|length) }}
-      </small>
-    </li>
-  {% endfor %}
-</ol>
-
 </div>
-</div>
+
+</div> <!-- End of tab panel container -->
 
 {% endblock %}
